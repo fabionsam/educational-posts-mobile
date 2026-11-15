@@ -96,29 +96,34 @@ npm run seed     # Alimenta o banco com usuários e postagens de teste
 npm start        # Inicia a API REST na porta 3000
 ```
 
-### 2. Inicializando o Aplicativo Mobile
+### 2. Configurando o Ambiente e Inicializando o Mobile
 No diretório `educational-posts-mobile`:
 ```bash
 # Instalar as dependências
 npm install
+
+# Copiar arquivo de variáveis de ambiente
+cp .env.example .env
 
 # Iniciar o servidor de desenvolvimento Expo
 npm start
 # ou: npx expo start
 ```
 
+> **Nota sobre a URL da API:** A conexão com o servidor é configurada via variável de ambiente `EXPO_PUBLIC_API_URL` (no arquivo `.env` ou prefixando o comando de inicialização):
+> - **Navegador Web / iOS:** `EXPO_PUBLIC_API_URL=http://localhost:3000`
+> - **Emulador Android Studio:** `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`
+> - **Dispositivo Físico (Expo Go):** `EXPO_PUBLIC_API_URL=http://192.168.x.x:3000` (substitua pelo IP da sua máquina na rede local)
+
 ### 3. Conectando o Celular ou Emulador
 
+- **Navegador Web:** Pressione `w` no terminal do Expo.
+- **Emulador Android Studio:** Pressione `a` no terminal do Expo.
+- **Simulador iOS:** Pressione `i` no terminal do Expo.
 - **Dispositivo Físico (Expo Go via QR Code):**
-  1. Conecte o smartphone na mesma rede Wi-Fi do computador onde o backend está rodando.
-  2. Abra o app Expo Go e aponte a câmera para o QR Code exibido no terminal.
-  3. No app, acesse a aba **Perfil > Conexão com a API** e informe o endereço IP local da sua máquina na rede (ex: `http://192.168.1.15:3000`), clicando em **Salvar URL** e **Testar**. O app armazenará esse endereço no AsyncStorage.
-- **Emulador Android Studio:**
-  - Pressione `a` no terminal do Expo. O app utilizará automaticamente o endereço especial `http://10.0.2.2:3000` para rotear ao localhost do host.
-- **Simulador iOS:**
-  - Pressione `i` no terminal do Expo.
-- **Navegador Web (para inspeção rápida):**
-  - Pressione `w` no terminal do Expo.
+  1. Conecte o smartphone na mesma rede Wi-Fi do computador.
+  2. Defina no arquivo `.env` o seu IP local (ex: `EXPO_PUBLIC_API_URL=http://192.168.0.117:3000`).
+  3. Abra o app Expo Go e aponte a câmera para o QR Code exibido no terminal.
 
 ---
 

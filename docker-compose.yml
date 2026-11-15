@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  mobile:
+    build:
+      context: .
+      args:
+        EXPO_PUBLIC_API_URL: http://localhost:3000
+    container_name: educational_posts_mobile
+    ports:
+      - "8081:80"
+    restart: always

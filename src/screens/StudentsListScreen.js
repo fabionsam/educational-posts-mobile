@@ -10,13 +10,16 @@ import {
   TextInput,
   SafeAreaView,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { theme } from '../styles/theme';
 
 export default function StudentsListScreen({ navigation }) {
+  const { isAdmin } = useAuth();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,7 +54,25 @@ export default function StudentsListScreen({ navigation }) {
     fetchStudents(page, search);
   };
 
+  const performDelete = async (id) => {
+    try {
+      await api.delete(`/users/${id}`);
+      Alert.alert('Sucesso', 'Aluno excluído com sucesso.');
+      fetchStudents(page, search);
+    } catch (err) {
+      Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir aluno.');
+    }
+  };
+
   const handleDelete = (id, name) => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' ? window.confirm(`Deseja realmente remover o aluno "${name}" do sistema?`) : true;
+      if (confirmed) {
+        performDelete(id);
+      }
+      return;
+    }
+
     Alert.alert(
       'Confirmar Exclusão',
       `Deseja realmente remover o aluno "${name}" do sistema?`,
@@ -60,15 +81,7 @@ export default function StudentsListScreen({ navigation }) {
         {
           text: 'Excluir',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/users/${id}`);
-              Alert.alert('Sucesso', 'Aluno excluído com sucesso.');
-              fetchStudents(page, search);
-            } catch (err) {
-              Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir aluno.');
-            }
-          },
+          onPress: () => performDelete(id),
         },
       ]
     );
@@ -84,35 +97,39 @@ export default function StudentsListScreen({ navigation }) {
         <Text style={styles.emailText}>{item.email}</Text>
       </View>
 
-      <View style={styles.actionCol}>
-        <TouchableOpacity
-          style={[styles.btn, styles.editBtn]}
-          onPress={() => navigation.navigate('EditStudent', { id: item.id })}
-        >
-          <Ionicons name="pencil" size={16} color={theme.colors.warning} />
-        </TouchableOpacity>
+      {isAdmin && (
+        <View style={styles.actionCol}>
+          <TouchableOpacity
+            style={[styles.btn, styles.editBtn]}
+            onPress={() => navigation.navigate('EditStudent', { id: item.id })}
+          >
+            <Ionicons name="pencil" size={16} color={theme.colors.warning} />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.btn, styles.deleteBtn]}
-          onPress={() => handleDelete(item.id, item.name)}
-        >
-          <Ionicons name="trash" size={16} color={theme.colors.danger} />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[styles.btn, styles.deleteBtn]}
+            onPress={() => handleDelete(item.id, item.name)}
+          >
+            <Ionicons name="trash" size={16} color={theme.colors.danger} />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Gestão de Alunos</Text>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('CreateStudent')}
-        >
-          <Ionicons name="person-add" size={18} color="#fff" />
-          <Text style={styles.addBtnText}>Novo Aluno</Text>
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Alunos</Text>
+        {isAdmin && (
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate('CreateStudent')}
+          >
+            <Ionicons name="person-add" size={18} color="#fff" />
+            <Text style={styles.addBtnText}>Novo Aluno</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.searchBar}>

@@ -9,6 +9,7 @@ import {
   Alert,
   RefreshControl,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -45,7 +46,25 @@ export default function AdminPostsScreen({ navigation }) {
     fetchPosts();
   };
 
+  const performDelete = async (postId) => {
+    try {
+      await api.delete(`/posts/${postId}`);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      Alert.alert('Sucesso', 'Postagem excluída.');
+    } catch (err) {
+      Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir.');
+    }
+  };
+
   const handleDelete = (postId, postTitle) => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' ? window.confirm(`Deseja realmente excluir a postagem "${postTitle}"?`) : true;
+      if (confirmed) {
+        performDelete(postId);
+      }
+      return;
+    }
+
     Alert.alert(
       'Confirmar Exclusão',
       `Deseja realmente excluir a postagem "${postTitle}"?`,
@@ -54,15 +73,7 @@ export default function AdminPostsScreen({ navigation }) {
         {
           text: 'Excluir',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/posts/${postId}`);
-              setPosts((prev) => prev.filter((p) => p.id !== postId));
-              Alert.alert('Sucesso', 'Postagem excluída.');
-            } catch (err) {
-              Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir.');
-            }
-          },
+          onPress: () => performDelete(postId),
         },
       ]
     );

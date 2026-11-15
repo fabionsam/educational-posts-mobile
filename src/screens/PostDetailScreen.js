@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
@@ -42,7 +43,27 @@ export default function PostDetailScreen({ route, navigation }) {
   const isAuthor = user && (user.id === post?.userId || user.name === post?.author);
   const canModify = isAdmin || isAuthor;
 
+  const performDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/posts/${id}`);
+      Alert.alert('Sucesso', 'Postagem excluída com sucesso.');
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir postagem.');
+      setDeleting(false);
+    }
+  };
+
   const handleDelete = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' ? window.confirm('Tem certeza de que deseja excluir esta postagem?') : true;
+      if (confirmed) {
+        performDelete();
+      }
+      return;
+    }
+
     Alert.alert(
       'Confirmar Exclusão',
       'Tem certeza de que deseja excluir esta postagem?',
@@ -51,17 +72,7 @@ export default function PostDetailScreen({ route, navigation }) {
         {
           text: 'Excluir',
           style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await api.delete(`/posts/${id}`);
-              Alert.alert('Sucesso', 'Postagem excluída com sucesso.');
-              navigation.goBack();
-            } catch (err) {
-              Alert.alert('Erro', err.response?.data?.error || 'Erro ao excluir postagem.');
-              setDeleting(false);
-            }
-          },
+          onPress: performDelete,
         },
       ]
     );
