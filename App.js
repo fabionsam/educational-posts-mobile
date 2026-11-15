@@ -7,7 +7,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ flex: 1 }}>
       <AuthProvider>
         <NavigationContainer>
           <StatusBar style="dark" />
