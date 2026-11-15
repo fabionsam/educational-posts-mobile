@@ -73,7 +73,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const getRoleBadgeStyle = (role) => {
-    if (role === 'admin') return { bg: '#FEE2E2', text: '#DC2626', label: 'Administrador' };
+    if (role === 'admin' || role === 'administrador') return { bg: '#FEE2E2', text: '#DC2626', label: 'Administrador' };
     if (role === 'professor') return { bg: '#E0E7FF', text: '#4338CA', label: 'Professor' };
     return { bg: '#D1FAE5', text: '#059669', label: 'Aluno' };
   };
