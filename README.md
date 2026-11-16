@@ -82,10 +82,48 @@ educational-posts-mobile/
 
 ## 🚀 Como Executar o Projeto
 
+Você pode executar o projeto de duas formas: **via Docker** (mais simples e reproduzível) ou **localmente com Node/Expo**.
+
+---
+
+## 🐳 Executando com Docker (Recomendado para Avaliação)
+
+O aplicativo conta com uma configuração completa em Docker utilizando build *multi-stage*:
+- **Estágio 1 (Builder):** Utiliza Node.js para compilar e exportar os assets web do React Native Expo com o Metro Bundler.
+- **Estágio 2 (Produção):** Imagem leve `nginx:alpine` servindo os arquivos estáticos otimizados na porta `8081` com roteamento SPA.
+
+### 1. Build e Inicialização do Container
+Na raiz do diretório `educational-posts-mobile`:
+```bash
+docker compose up -d --build
+```
+
+Após o término do build, acesse o aplicativo no navegador em:
+👉 **`http://localhost:8081`**
+
+> **Dica sobre a API:** Por padrão, o `docker-compose.yml` aponta para `http://localhost:3000`. Se desejar alterar o endereço do backend, você pode passar a variável no comando de build ou editar o `docker-compose.yml`:
+> ```bash
+> docker compose build --build-arg EXPO_PUBLIC_API_URL=http://outro-ip:3000
+> ```
+
+### 2. Visualização dos Logs e Parada
+- Para visualizar os logs do Nginx / acesso:
+  ```bash
+  docker compose logs -f
+  ```
+- Para parar o container:
+  ```bash
+  docker compose down
+  ```
+
+---
+
+## ⚙️ Executando Localmente com Node / Expo
+
 ### Pré-requisitos
 1. **Node.js** instalado (versão 18 ou superior).
 2. O backend (`educational-posts-backend`) em execução na porta `3000`.
-3. Aplicativo **Expo Go** instalado em seu smartphone (disponível na Google Play Store ou Apple App Store) **ou** emulador Android Studio / Simulador iOS configurado na máquina.
+3. Aplicativo **Expo Go** instalado no smartphone **ou** emulador Android Studio / Simulador iOS configurado na máquina.
 
 ### 1. Inicializando o Backend
 No diretório do repositório backend:
