@@ -17,15 +17,14 @@ Aplicativo móvel desenvolvido com **React Native** e **Expo (SDK 52)** como par
   - *Regra de Negócio RBAC:* Professores visualizam e gerenciam apenas suas próprias postagens. Administradores visualizam e gerenciam todas as postagens do sistema.
 
 ### 3. Gestão de Usuários (Docentes e Alunos)
+> **Observação de Arquitetura & Segurança:** Por decisão de projeto, **apenas o Administrador** tem permissão para cadastrar, editar e excluir novos usuários (docentes e discentes). Os professores têm acesso concedido para visualizar, pesquisar e paginar as listas de docentes e alunos, porém os botões de ação e os endpoints de cadastro/edição/exclusão são protegidos e restritos exclusivamente ao administrador.
+
 - **Gestão de Docentes (Req. 5, 6 e 7):**
-  - Listagem paginada de professores (`GET /users?role=professor`) com filtro dinâmico por nome ou e-mail.
-  - Cadastro de novo professor (`POST /users`) com validação de formato e e-mail único.
-  - Edição de docente (`PUT /users/:id`) com campos pré-carregados e atualização opcional de senha.
-  - Exclusão com alerta de confirmação e atualização da lista.
+  - Listagem paginada de professores (`GET /users?role=professor`) com filtro dinâmico por nome ou e-mail (acessível por docentes e administradores).
+  - Cadastro de novo professor (`POST /users`), edição (`PUT /users/:id`) e exclusão segura (exclusivo para administradores).
 - **Gestão de Alunos (Req. 8):**
-  - Listagem paginada de alunos (`GET /users?role=aluno`) com busca em tempo real.
-  - Cadastro de novos discentes (`POST /users`).
-  - Edição cadastral e exclusão segura.
+  - Listagem paginada de alunos (`GET /users?role=aluno`) com busca em tempo real (acessível por docentes e administradores).
+  - Cadastro de novos discentes (`POST /users`), edição cadastral e exclusão segura (exclusivo para administradores).
 
 ### 4. Autenticação e Sessão (Req. 10)
 - **Login Seguro via JWT:** Autenticação de credenciais com armazenamento persistente de token no `@react-native-async-storage/async-storage`.
@@ -149,15 +148,16 @@ A decisão de manter o aplicativo mobile em um repositório isolado (`educationa
 ### 2. Transição Web para Mobile (React vs. React Native)
 Diferente da interface web, o desenvolvimento para dispositivos móveis exigiu o uso estrito de componentes nativos (`View`, `Text`, `FlatList`, `KeyboardAvoidingView`, `SafeAreaView`) e a adaptação do modelo de layout Flexbox padrão do React Native (onde `flexDirection` é `column` por padrão). Para garantir alta fluidez e evitar quedas de taxa de quadros (*FPS drops*), foi priorizado o uso de `FlatList` com `keyExtractor` e `renderItem` memoizados, em vez de `ScrollView` com mapeamento manual de arrays.
 
-### 3. Resolução de Rede e Conectividade Local
-Um dos principais desafios ao testar aplicativos React Native contra um backend local é a resolução de portas:
+### 3. Resolução de Rede e Configuração por Variável de Ambiente
+Um dos desafios ao testar aplicativos React Native contra um backend local é a resolução de portas:
 - Emuladores Android mapeiam o localhost do host pelo endereço especial `10.0.2.2:3000`.
 - Aparelhos físicos via Expo Go não alcançam `localhost`, necessitando do endereço IP privado da máquina na rede local (ex: `192.168.x.x:3000`).
-Para resolver esse gargalo de forma elegante, foi criada uma camada dinâmica no arquivo `api.js` que detecta a plataforma por padrão e oferece na tela de **Perfil** a possibilidade de alterar a URL da API em tempo de execução com persistência no `AsyncStorage`, além de um botão de teste de conectividade com feedback visual imediato.
+Para mitigar riscos de segurança e evitar brechas decorrentes de configurações manuais na interface por usuários finais, a URL do backend foi padronizada para ser injetada em tempo de inicialização via variável de ambiente `EXPO_PUBLIC_API_URL` (definida no arquivo `.env` ou no comando de inicialização `npm start`).
 
 ### 4. Controle de Acesso Baseado em Papéis (RBAC) e Experiência do Usuário
 A especificação exigiu isolamento de permissões:
 - Usuários anônimos e alunos têm permissão de leitura sobre as postagens.
-- Professores podem gerenciar suas postagens, mas não devem ter permissão de alterar ou excluir postagens de outros docentes no painel administrativo.
-- Administradores possuem visão holística sobre todas as publicações e o controle de cadastros.
-A interface móvel reflete isso de maneira limpa por meio de renderização condicional nas abas de navegação (`BottomTabNavigator`) e filtros no contexto do painel administrativo, garantindo que o usuário visualize apenas as ações que seu papel permite executar.
+- Professores podem gerenciar suas postagens, mas não têm permissão de alterar ou excluir postagens de outros docentes no painel administrativo.
+- **Decisão de Gestão de Usuários:** Por decisão de projeto para prevenir privilégios indevidos, a criação, edição e exclusão de qualquer usuário (docentes e alunos) é atribuição estrita do **Administrador**. Os professores possuem visão de consulta para acompanhar o corpo docente e os estudantes da instituição, mas não podem efetuar mutações cadastrais.
+- Administradores possuem visão holística sobre todas as publicações e o controle total de cadastros.
+A interface móvel reflete isso de maneira limpa por meio de renderização condicional nas abas de navegação (`BottomTabNavigator`) e controle de botões de ação nas telas de listagem.
