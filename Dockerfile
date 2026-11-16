@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Export static web files
-RUN npx expo export -p web --output-dir dist
+RUN npx expo export -p web --no-minify --output-dir dist
 
 # Stage 2: Serve using Nginx
 FROM nginx:alpine
