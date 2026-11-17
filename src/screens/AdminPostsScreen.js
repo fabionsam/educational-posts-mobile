@@ -38,7 +38,7 @@ export default function AdminPostsScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchPosts();
-    }, [])
+    }, [isAdmin, user?.id, user?.name])
   );
 
   const onRefresh = () => {
@@ -82,7 +82,12 @@ export default function AdminPostsScreen({ navigation }) {
   // Filtragem: Professores veem apenas as suas postagens. Administrador vê todas.
   const displayedPosts = isAdmin
     ? posts
-    : posts.filter((p) => user && (p.userId === user.id || p.author === user.name));
+    : posts.filter((p) => {
+        if (!user) return false;
+        const matchId = p.userId && user.id && String(p.userId).toLowerCase() === String(user.id).toLowerCase();
+        const matchAuthor = p.author && user.name && p.author.trim().toLowerCase() === user.name.trim().toLowerCase();
+        return matchId || matchAuthor;
+      });
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -143,19 +148,37 @@ export default function AdminPostsScreen({ navigation }) {
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
-      ) : displayedPosts.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Ionicons name="document-text-outline" size={48} color={theme.colors.textMuted} />
-          <Text style={styles.emptyText}>Nenhuma postagem cadastrada.</Text>
-        </View>
       ) : (
         <FlatList
           data={displayedPosts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            displayedPosts.length === 0 && styles.emptyListContent,
+          ]}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-text-outline" size={48} color={theme.colors.textMuted} />
+              <Text style={styles.emptyText}>Nenhuma postagem encontrada.</Text>
+              <Text style={styles.emptySubtext}>
+                {isAdmin
+                  ? 'Nenhum post publicado no sistema.'
+                  : 'Você ainda não publicou nenhuma postagem.'}
+              </Text>
+              <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+                <Ionicons name="refresh" size={16} color={theme.colors.primary} />
+                <Text style={styles.refreshBtnText}>Puxar / Atualizar Lista</Text>
+              </TouchableOpacity>
+            </View>
           }
         />
       )}
@@ -256,9 +279,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: theme.spacing.xl,
   },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.xl,
+  },
   emptyText: {
-    fontSize: 15,
-    color: theme.colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
     marginTop: theme.spacing.sm,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  refreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    backgroundColor: theme.colors.primaryLight,
+    borderRadius: theme.borderRadius.sm,
+  },
+  refreshBtnText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
   },
 });

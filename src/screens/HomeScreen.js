@@ -11,6 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../services/api';
 import { theme } from '../styles/theme';
 
@@ -38,6 +39,12 @@ export default function HomeScreen({ navigation }) {
       setRefreshing(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts(searchTerm);
+    }, [searchTerm])
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -119,19 +126,32 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.retryButtonText}>Tentar Novamente</Text>
           </TouchableOpacity>
         </View>
-      ) : posts.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Ionicons name="newspaper-outline" size={48} color={theme.colors.textMuted} />
-          <Text style={styles.centerText}>Nenhuma postagem encontrada.</Text>
-        </View>
       ) : (
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderPostItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            posts.length === 0 && styles.emptyListContent,
+          ]}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.centerContainer}>
+              <Ionicons name="newspaper-outline" size={48} color={theme.colors.textMuted} />
+              <Text style={styles.centerText}>Nenhuma postagem encontrada.</Text>
+              <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+                <Ionicons name="refresh" size={16} color={theme.colors.primary} />
+                <Text style={styles.refreshBtnText}>Puxar / Atualizar Feed</Text>
+              </TouchableOpacity>
+            </View>
           }
         />
       )}
@@ -249,5 +269,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  refreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    backgroundColor: theme.colors.primaryLight,
+    borderRadius: theme.borderRadius.sm,
+  },
+  refreshBtnText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
   },
 });
